@@ -9,7 +9,7 @@ Features
 - **User Authentication:** Users can register, log in, and manage their accounts.
 - **Product Management:** Admin users can add, edit, and delete products and categories.
 - **Shopping Cart:** Users can add products to their shopping cart and update quantities.
-- **Order Management:** Users can view their order history and status.
+- **Permissions and Roles Management:** The project includes management of permissions and roles for users..
 - **PayPal Integration:** Secure payment processing with PayPal integration.
 
 ## Getting Started
@@ -34,18 +34,21 @@ Features
 
         ```plaintext
         PORT_SERVER=
+        CORS_ORIGIN=
         MONGODB_URI=
         SALT=
         SECRET_KEY_PAYPAL=
         CLIENT_ID_PAYPAL=
         ACCESS_TOKEN_PRIVATE_KEY=
+        PAYMENT_CALLBACK_URLS=
+        APPLICATION_NAME=
         DB_HOST=
         ```
 
 4. **Start the Server:**
 
     ```bash
-    npm start
+    node index.js
     ```
 
 5. **Access the Application:**
