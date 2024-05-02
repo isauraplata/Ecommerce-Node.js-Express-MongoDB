@@ -19,17 +19,20 @@ export const createProduct = async (req, res) => {
       category_id,
     } = req.body;
 
+    const url_image = req.file ? req.file.path : '';
     const newProduct = new Product({
       name,
       description,
       price,
       stock_quantity,
-      category_id
+      category_id,
+      url_image
     });
 
     await newProduct.save();
     res.status(201).json(newProduct);
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -55,7 +58,6 @@ export const foundProduct = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 export const deleteProduct = async (req, res) => {
   try {

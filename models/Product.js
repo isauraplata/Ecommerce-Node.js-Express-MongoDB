@@ -25,6 +25,10 @@ const productSchema = new Schema({
     ref: "Category",
     required: true
   },
+  url_image: {
+    type: String,
+    required: true,
+  },
   created_at: {
     type: Date,
     default: Date.now

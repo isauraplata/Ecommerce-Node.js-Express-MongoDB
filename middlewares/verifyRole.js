@@ -7,18 +7,21 @@ const checkRole = () => {
         try {
      
             const token = req.cookies.access_token;
+            
+            if (!token) {
+                return res.status(401).json({ message: "Unauthorized. Missing access token." });
+            }
+
             const data = jwt.verify(token, process.env.ACCESS_TOKEN_PRIVATE_KEY);
             // Obtener el rol "admin" de la base de datos
             const adminRole = await Role.findOne({ name: "admin" });
-            console.log("Imprimiendo id del role: " + adminRole._id)
-
+            
             // Obtener el rol del usuario desde la solicitud
             const userRole = await User.findById(data.id)
-            console.log("Imprimiendo el user: " + userRole.role)
 
             // Verificar si el usuario tiene el rol de "admin"
             if (userRole.role.toString() !== adminRole._id.toString()) {
-                return res.status(403).json({ message: "No tienes permiso para acceder a este recurso" });
+                return res.status(403).json({ message: "[Error] Not authorized!" });
             }
 
             // Si el usuario tiene el rol de "admin", permitir el acceso
@@ -33,24 +36,3 @@ const checkRole = () => {
 };
 
 export default checkRole;
-
-
-
-// // authMiddleware.js
-// export const authorize = (requiredPermission) => {
-//     return (req, res, next) => {
-//         const userRole = req.user.role;
-
-//         // // Verificar si el usuario tiene el permiso requerido
-//         // if (!userRole || !userRole.permissions.includes(requiredPermission)) {
-//         //     return res.status(403).json({ message: "No tienes permiso para acceder a este recurso" });
-//         // }
-
-//         if(userRole != "admin" ){
-//             return res.status(403).json({ message: "No tienes permiso para acceder a este recurso" });
-//         }
-
-//         next();
-//     };
-// };
-

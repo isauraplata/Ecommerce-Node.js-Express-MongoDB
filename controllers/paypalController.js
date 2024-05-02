@@ -1,7 +1,9 @@
-import { config } from "dotenv";
 import axios from "axios";
+import { config } from "dotenv";
 
-export const createOrder = async (req, res) => {
+config();
+
+export const createOrder = async (shoppingCart) => {
   try {
     const order = {
       intent: "CAPTURE",
@@ -9,20 +11,19 @@ export const createOrder = async (req, res) => {
         {
           amount: {
             currency_code: "USD",
-            value: "10.00",
+            value: shoppingCart.total, 
           },
         },
       ],
       application_context: {
-        brand_name: "mycompany.com",
+        brand_name: process.env.APPLICATION_NAME,
         landing_page: "NO_PREFERENCE",
         user_action: "PAY_NOW",
-        return_url: `http://localhost:4000/api/v1/capture-order`,
-        cancel_url: `http://localhost:4000/api/v1/cancel-payment`,
+        return_url: `${process.env.PAYMENT_CALLBACK_URLS}/capture-order`,
+        cancel_url: `${process.env.PAYMENT_CALLBACK_URLS}/cancel-payment`,
       },
     };
 
-    // format the body
     const params = new URLSearchParams();
     params.append("grant_type", "client_credentials");
 
@@ -46,25 +47,23 @@ export const createOrder = async (req, res) => {
     console.log("access_token: " + access_token);
 
     // make a request
-
-
     const response = await axios.post(
-        "https://api-m.sandbox.paypal.com/v2/checkout/orders",
-        order,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${access_token}`,
-          },
-        }
-      );
+      "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+      order,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${access_token}`,
+        },
+      }
+    );
 
-    console.log(response.data); 
+    console.log(response.data);
+    return response.data; // Devuelve la respuesta de PayPal
 
-    return res.json(response.data);
   } catch (error) {
     console.error("Error:", error.response ? error.response.data : error.message);
-    return res.status(500).json("Something goes wrong");
+    throw new Error("Something goes wrong");
   }
 };
 
@@ -82,10 +81,6 @@ export const captureOrder = async (req, res) => {
         },
       }
     );
-
-    console.log(response.data);
-    console.log("ya fue pagado xd");
-    //res.redirect("/payed.html");
     return res.json(response.data);
   } catch (error) {
     console.log(error.message);
@@ -93,4 +88,11 @@ export const captureOrder = async (req, res) => {
   }
 };
 
-export const cancelPayment = (req, res) => res.json("se cancelo");
+export const cancelPayment = (req, res) => {
+  const response = {
+    status: "cancelled",
+    message: "The payment has been successfully cancelled.",
+    additionalInfo: "You can try to make the payment again later if you wish."
+  };
+  return res.status(200).json(response);
+};

@@ -17,11 +17,9 @@ export const signUp = async (req, res) => {
         .status(400)
         .json({ error: error, message: error.details[0].message });
     }
-
-    const role = await Role.findOne({ name: "user" });
-    //registra usuarios
-    const { username, email, password } = req.body;
-    console.log(username, email, password)
+    
+    const { username, email, password, rol } = req.body;
+    const role = await Role.findOne({ name: rol });
 
     const newUser = new User({
       username,
@@ -31,17 +29,8 @@ export const signUp = async (req, res) => {
     });
 
     const savedUser = await newUser.save();
-    console.log(savedUser);
-
-    const token = jwt.sign(
-      { id: savedUser._id },
-      process.env.ACCESS_TOKEN_PRIVATE_KEY,
-      {
-        expiresIn: 86400, //24 hrs
-      }
-    );
-
     res.status(201).json({ message: "Account created successfully!" });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "An internal server error occurred." });
@@ -57,14 +46,12 @@ export const signIn = async (req, res) => {
         .json({ error: error, message: error.details[0].message });
     }
 
-    const { email, password } = req.body;
-
-    //login
     const userFound = await User.findOne({ email: req.body.email });
 
     if (!userFound) {
-      return res.status(400).json({ message: "user not found" });
+      return res.status(400).json({ message: "User not found" });
     }
+
     const matchpassword = await User.comparePassword(
       req.body.password,
       userFound.password
@@ -73,8 +60,6 @@ export const signIn = async (req, res) => {
     if (!matchpassword) {
       return res.status(401).json({ toke: null, message: "ERROR" });
     }
-
-    console.log(userFound);
 
     const token = jwt.sign(
       { id: userFound.id },
@@ -86,8 +71,8 @@ export const signIn = async (req, res) => {
       .cookie("access_token", token, {
         httpOnly: false,
         sameSite: "None",
-        maxAge: 3600000, //un ahora de vida de la cookie
-        secure: false, //esto se va a cambiar cuando se ponga el ssl
+        maxAge: 24 * 60 * 60 * 1000, //24 hrs
+        secure: false, //esto se cambia cuando se ponga el ssl
       })
       .status(200)
       .json({ message: "Logged in successfully!" });
@@ -95,7 +80,6 @@ export const signIn = async (req, res) => {
     res.status(401).json({ message: "Invalid email or password." });
   }
 };
-
 
 export const logout = (req, res) => {
   return res

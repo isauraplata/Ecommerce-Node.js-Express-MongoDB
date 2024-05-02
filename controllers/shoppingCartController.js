@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
 import Product from "../models/Product.js"; 
 import ShoppingCart from "../models/ShoppingCart.js"; 
-
+import { createOrder } from "./paypalController.js";
 
 export const getAll = async (req, res) => {
   try {
-
+    //traer el carrito de compras filtrado por el id del usuario
     const token = req.cookies.access_token;
     const data = jwt.verify(token, process.env.ACCESS_TOKEN_PRIVATE_KEY);
     console.log(data);
@@ -17,6 +17,7 @@ export const getAll = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 export const createPurchase = async (req, res) => {
   try {
@@ -40,13 +41,12 @@ export const createPurchase = async (req, res) => {
       total += product.price * quantity;
     }
 
-    // Update cart or create new cart if none exists for user
     let shoppingCart = await ShoppingCart.findOne({ user_id });
     if (!shoppingCart) {
       shoppingCart = new ShoppingCart({ user_id, products: [] });
     }
 
-    // Check if product already exists in cart and update quantity
+    // Comprobar si el producto ya existe en el carrito y actualizar la cantidad
     for (const { product_id, quantity } of products) {
       const existingProductIndex = shoppingCart.products.findIndex(item => item.product_id.equals(product_id));
       if (existingProductIndex !== -1) {
@@ -60,14 +60,16 @@ export const createPurchase = async (req, res) => {
 
     await shoppingCart.save();
 
-    res.status(201).json(shoppingCart);
+    // Una vez que se haya actualizado el carrito, crea la orden de PayPal
+    const paypalResponse = await createOrder(shoppingCart); // Pasar el carrito como parámetro
+
+    return res.status(201).json({ shoppingCart });
 
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 
 export const deletePurchase = async (req, res) => {
