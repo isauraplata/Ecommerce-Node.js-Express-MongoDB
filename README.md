@@ -17,7 +17,7 @@ Features
 1. **Clone the Repository:**
 
     ```bash
-    https://github.com/isauraplata/Ecommerce-Node.js-MongoDB.git
+    https://github.com/isauraplata/Ecommerce-Node.js-Express-MongoDB.git
     ```
 
 2. **Install Dependencies:**
